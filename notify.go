@@ -44,20 +44,16 @@ func ReadListener(event fsnotify.Event, config *Config) {
 }
 
 func ParseListener(file string, config *Config) {
-	var (
-		matched bool
-		err     error
-	)
-	matched, err = regexp.MatchString(`match[0-9]+\.json`, file)
-	Check(err)
-	if matched {
-		fmt.Println("matched match file")
+	if matched, err := regexp.MatchString(`match[0-9]+\.json`, file); matched && err == nil {
+		fmt.Println("match file")
+	} else {
+		Check(err)
 	}
 
-	matched, err = regexp.MatchString(`market[0-9]+\.json`, file)
-	Check(err)
-	if matched {
-		fmt.Println("matched market file")
+	if matched, err := regexp.MatchString(`market[0-9]+\.json`, file); matched && err == nil {
+		fmt.Println("market file")
+	} else {
+		Check(err)
 	}
 
 	switch file {
