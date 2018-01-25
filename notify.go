@@ -46,12 +46,14 @@ func ReadListener(event fsnotify.Event, config *Config) {
 func ParseListener(file string, config *Config) {
 	if matched, err := regexp.MatchString(`match[0-9]+\.json`, file); matched && err == nil {
 		fmt.Println("match file")
+		return
 	} else {
 		Check(err)
 	}
 
 	if matched, err := regexp.MatchString(`market[0-9]+\.json`, file); matched && err == nil {
 		fmt.Println("market file")
+		return
 	} else {
 		Check(err)
 	}
@@ -66,4 +68,5 @@ func ParseListener(file string, config *Config) {
 	case config.Listener.StaticFiles.LeaguesFull:
 		fmt.Println("matched leagues_full static file")
 	}
+	return
 }
