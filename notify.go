@@ -30,35 +30,35 @@ func StartListener(config *Config) {
 }
 
 func ReadListener(event fsnotify.Event, config *Config) {
-	fmt.Println("event: ", event.Op.String())
 	ParseListener(event.Name, config)
 }
 
 func ParseListener(file string, config *Config) {
-	fmt.Println("modify file: ", file)
 	if matched, err := regexp.MatchString(`match[0-9]+\.json`, file); matched && err == nil {
 		fmt.Println("match file")
-		return
 	} else {
 		Check(err)
 	}
 
 	if matched, err := regexp.MatchString(`market[0-9]+\.json`, file); matched && err == nil {
 		fmt.Println("market file")
-		return
 	} else {
 		Check(err)
 	}
-
-	switch file {
-	case config.Listener.StaticFiles.League:
+	if file == config.Listener.StaticFiles.League {
 		fmt.Println("matched league static file")
-	case config.Listener.StaticFiles.MatchFull:
+	}
+
+	if file == config.Listener.StaticFiles.MatchFull {
 		fmt.Println("matched match_full static file")
-	case config.Listener.StaticFiles.MarketFull:
+	}
+
+	if file == config.Listener.StaticFiles.MarketFull {
 		fmt.Println("matched match_full static file")
-	case config.Listener.StaticFiles.LeaguesFull:
+	}
+
+	if file == config.Listener.StaticFiles.LeaguesFull{
 		fmt.Println("matched leagues_full static file")
 	}
-	return
+	fmt.Println("modify file: ", file)
 }
