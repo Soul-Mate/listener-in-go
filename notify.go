@@ -35,6 +35,7 @@ func ReadListener(event fsnotify.Event, config *Config) {
 }
 
 func ParseListener(file string, config *Config) {
+	fmt.Println("modify file: ", file)
 	if matched, err := regexp.MatchString(`match[0-9]+\.json`, file); matched && err == nil {
 		fmt.Println("match file")
 		return
