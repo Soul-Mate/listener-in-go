@@ -33,15 +33,14 @@ func ReadListener(event fsnotify.Event, config *Config) {
 	fmt.Println("event: ", event.Op.String())
 	switch {
 	case event.Op&fsnotify.Create == fsnotify.Create:
-		// TODO Create事件
+		ParseListener(event.Name, config)
 	case event.Op&fsnotify.Chmod == fsnotify.Chmod:
-		// TODO Chmod事件
+		ParseListener(event.Name, config)
 	case event.Op&fsnotify.Remove == fsnotify.Remove:
-		// TODO Remove事件
+		ParseListener(event.Name, config)
 	case event.Op&fsnotify.Write == fsnotify.Write:
 		ParseListener(event.Name, config)
 	}
-
 }
 
 func ParseListener(file string, config *Config) {
