@@ -45,6 +45,7 @@ func ParseListener(file string, config *Config) {
 	} else {
 		Check(err)
 	}
+	file = config.Listener.RootPath + "/" + file
 	if file == config.Listener.StaticFiles.League {
 		fmt.Println("matched league static file")
 	}
@@ -57,7 +58,7 @@ func ParseListener(file string, config *Config) {
 		fmt.Println("matched match_full static file")
 	}
 
-	if file == config.Listener.StaticFiles.LeaguesFull{
+	if file == config.Listener.StaticFiles.LeaguesFull {
 		fmt.Println("matched leagues_full static file")
 	}
 	fmt.Println("modify file: ", file)
