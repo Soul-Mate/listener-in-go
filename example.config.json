@@ -1,0 +1,24 @@
+
+{
+  "listener": {
+    "root": "/home/www",
+    "static_files": {
+      "league": "league.json",
+      "match_full": "matchfull.json",
+      "market_full": "marketfull.json",
+      "leagues_full": "leaguesfull.json"
+    }
+  },
+  "db": {
+    "host": "127.0.0.1",
+    "port": "3306",
+    "user": "root",
+    "password": "root",
+    "database": "text",
+    "charset": "utf8"
+  },
+  "redis": {
+    "host": "127.0.0.1",
+    "port": "6379"
+  }
+}

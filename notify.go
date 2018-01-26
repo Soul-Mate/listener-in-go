@@ -6,7 +6,8 @@ import (
 	"regexp"
 )
 
-func StartListener(config *Config) {
+func StartListener() {
+	config := GetConfig()
 	done := make(chan bool)
 	watcher, err := fsnotify.NewWatcher()
 	Check(err)
@@ -30,12 +31,15 @@ func StartListener(config *Config) {
 }
 
 func ReadListener(event fsnotify.Event, config *Config) {
-	ParseListener(event.Name, config)
+	if event.Op&fsnotify.Create == fsnotify.Create ||
+		event.Op&fsnotify.Write == fsnotify.Write {
+		ParseListener(event.Name, config)
+	}
 }
 
 func ParseListener(file string, config *Config) {
 	if matched, err := regexp.MatchString(`match[0-9]+\.json`, file); matched && err == nil {
-		fmt.Println("match file")
+		ParseMatchSave(file)
 	} else {
 		Check(err)
 	}
@@ -45,20 +49,20 @@ func ParseListener(file string, config *Config) {
 	} else {
 		Check(err)
 	}
-	file = config.Listener.RootPath + "/" + file
-	if file == config.Listener.StaticFiles.League {
+	filePrefix := config.Listener.RootPath + "/"
+	if file == filePrefix + config.Listener.StaticFiles.League {
 		fmt.Println("matched league static file")
 	}
 
-	if file == config.Listener.StaticFiles.MatchFull {
+	if file == filePrefix + config.Listener.StaticFiles.MatchFull {
+		ParseMatchSave(file)
+	}
+
+	if file == filePrefix + config.Listener.StaticFiles.MarketFull {
 		fmt.Println("matched match_full static file")
 	}
 
-	if file == config.Listener.StaticFiles.MarketFull {
-		fmt.Println("matched match_full static file")
-	}
-
-	if file == config.Listener.StaticFiles.LeaguesFull {
+	if file == filePrefix + config.Listener.StaticFiles.LeaguesFull {
 		fmt.Println("matched leagues_full static file")
 	}
 	fmt.Println("modify file: ", file)

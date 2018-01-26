@@ -36,17 +36,31 @@ type Config struct {
 	Listener ListenerConf `json:"listener"`
 }
 
-func (c *Config) NewConfig() error {
+var conf *Config
+
+func NewConfig(c Config) (*Config, error) {
 	path, err := filepath.Abs(filepath.Dir("./"))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	data, err := ioutil.ReadFile(path + "/config.json")
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if err := json.Unmarshal(data, c); err != nil {
-		return err
+	if err := json.Unmarshal(data, &c); err != nil {
+		return nil, err
 	}
-	return nil
+	return &c, nil
 }
+
+func GetConfig() (*Config) {
+	var err error
+	if conf == nil {
+		conf, err = NewConfig(Config{})
+		if err != nil {
+			panic(err)
+		}
+	}
+	return conf
+}
+
