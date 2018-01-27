@@ -6,7 +6,11 @@ import (
 	"bytes"
 	"strconv"
 	"log"
+	"errors"
+	"runtime/debug"
 )
+
+var MarketJsonNone = errors.New("market file json")
 
 var MarketFields = []string{
 	"number", "name", "match_id", "suspended",
@@ -38,8 +42,8 @@ func ParseMarketFile(file string) ([]Market, error) {
 		return nil, err
 	}
 
-	if len(content) < 0 {
-		return nil, nil
+	if len(content) <= 0 {
+		return nil, MarketJsonNone
 	}
 	result := make([]Market, 32)
 	if content[0] == '"' {
@@ -62,9 +66,9 @@ func ParseMarketSave(file string) {
 	mks, err := ParseMarketFile(file)
 	if err != nil {
 		log.Fatal(err)
-		return
-	}
-	if mks != nil {
+		debug.PrintStack()
+
+	} else {
 		SaveMarketMysql(&mks)
 	}
 }

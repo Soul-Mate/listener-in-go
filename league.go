@@ -6,7 +6,11 @@ import (
 	"bytes"
 	"strconv"
 	"log"
+	"errors"
+	"runtime/debug"
 )
+
+var LeagueJsonNone = errors.New("league file none")
 
 type League struct {
 	Id           interface{}              `json:"Id"`
@@ -60,8 +64,8 @@ func ParseLeagueFile(file string) ([]League, error) {
 		return nil, err
 	}
 
-	if len(content) < 0 {
-		return nil, nil
+	if len(content) <= 0 {
+		return nil, LeagueJsonNone
 	}
 
 	result := make([]League, 320)
@@ -86,12 +90,10 @@ func ParseLeagueSave(file string) {
 	les, err := ParseLeagueFile(file)
 	if err != nil {
 		log.Fatal(err)
-		return
-	}
-	if les != nil {
+		debug.PrintStack()
+	} else {
 		SaveLeagueMysql(&les)
 	}
-
 }
 
 func SaveLeagueMysql(les *[]League) {

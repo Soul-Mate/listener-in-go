@@ -6,7 +6,11 @@ import (
 	"bytes"
 	"strconv"
 	"log"
+	"errors"
+	"runtime/debug"
 )
+
+var MatchJsonNone = errors.New("match json none")
 
 type Match struct {
 	Id           int    `json:"Id"`
@@ -52,8 +56,8 @@ func ParseMatchFile(file string) ([]Match, error) {
 		return nil, err
 	}
 
-	if len(content) > 0 {
-		return nil, nil
+	if len(content) <= 0 {
+		return nil, MatchJsonNone
 	}
 
 	result := make([]Match, 32)
@@ -78,9 +82,8 @@ func ParseMatchSave(file string) {
 	mas, err := ParseMatchFile(file)
 	if err != nil {
 		log.Fatal(err)
-		return
-	}
-	if mas != nil {
+		debug.PrintStack()
+	} else {
 		SaveMatchMysql(&mas)
 	}
 }
