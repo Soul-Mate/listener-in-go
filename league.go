@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"bytes"
 	"strconv"
-	"log"
 	"errors"
-	"runtime/debug"
 )
 
 var LeagueJsonNone = errors.New("league file none")

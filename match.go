@@ -1,14 +1,15 @@
 package main
 
 import (
-	"io/ioutil"
-	"encoding/json"
 	"bytes"
-	"strconv"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"strconv"
 )
 
-var MatchJsonNone = errors.New("match json none")
+var MatchJsonNone = errors.New("match json file none")
 
 type Match struct {
 	Id           int    `json:"Id"`
@@ -54,18 +55,23 @@ func ParseMatchFile(file string) ([]Match, error) {
 		return nil, err
 	}
 
+	// read null
 	if len(content) <= 0 {
 		return nil, MatchJsonNone
 	}
 
 	result := make([]Match, 32)
+
+	// one
 	if content[0] == '"' {
 		var m Match
 		err = json.Unmarshal(content, &m)
 		if err != nil {
+
 			return nil, err
 		}
 		result = append(result, m)
+		// array
 	} else if content[0] == '[' {
 		err = json.Unmarshal(content, &result)
 		if err != nil {
@@ -80,6 +86,7 @@ func ParseMatchSave(file string) {
 	mas, err := ParseMatchFile(file)
 	if err == nil {
 		SaveMatchMysql(&mas)
+		fmt.Println("save match")
 	}
 }
 

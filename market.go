@@ -1,16 +1,15 @@
 package main
 
 import (
-	"io/ioutil"
-	"encoding/json"
 	"bytes"
-	"strconv"
-	"log"
+	"encoding/json"
 	"errors"
-	"runtime/debug"
+	"fmt"
+	"io/ioutil"
+	"strconv"
 )
 
-var MarketJsonNone = errors.New("market file json")
+var MarketJsonNone = errors.New("market file json none data")
 
 var MarketFields = []string{
 	"number", "name", "match_id", "suspended",
@@ -66,6 +65,7 @@ func ParseMarketSave(file string) {
 	mks, err := ParseMarketFile(file)
 	if err == nil {
 		SaveMarketMysql(&mks)
+		fmt.Println("save market")
 	}
 }
 
