@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"bytes"
 	"strconv"
+	"github.com/labstack/gommon/log"
 )
 
 var MarketFields = []string{
@@ -55,7 +56,10 @@ func ParseMarketFile(file string) ([]Market, error) {
 
 func ParseMarketSave(file string) {
 	mks, err := ParseMarketFile(file)
-	Check(err)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	SaveMarketMysql(&mks)
 }
 
