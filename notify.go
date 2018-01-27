@@ -31,7 +31,7 @@ func StartListener() {
 }
 
 func ReadListener(event fsnotify.Event, config *Config) {
-	if event.Op&fsnotify.Write == fsnotify.Write {
+	if event.Op&fsnotify.Create == fsnotify.Create {
 		ParseListener(event.Name, config)
 	}
 }
