@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"bytes"
 	"strconv"
-	"log"
 	"errors"
-	"runtime/debug"
 )
 
 var MatchJsonNone = errors.New("match json none")
