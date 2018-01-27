@@ -37,6 +37,10 @@ func ParseMarketFile(file string) ([]Market, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if len(content) < 0 {
+		return nil, nil
+	}
 	result := make([]Market, 32)
 	if content[0] == '"' {
 		var m Market
@@ -60,7 +64,9 @@ func ParseMarketSave(file string) {
 		log.Fatal(err)
 		return
 	}
-	SaveMarketMysql(&mks)
+	if mks != nil {
+		SaveMarketMysql(&mks)
+	}
 }
 
 func SaveMarketMysql(mks *[]Market) {
@@ -129,7 +135,6 @@ func saveMarketSql(mks *[]Market) string {
 
 		if i != mksCnt-1 {
 			buf.WriteString(",")
-			buf.WriteString("\n")
 		}
 	}
 	buf.WriteString("ON DUPLICATE KEY UPDATE ")

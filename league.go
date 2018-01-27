@@ -59,6 +59,11 @@ func ParseLeagueFile(file string) ([]League, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if len(content) < 0 {
+		return nil, nil
+	}
+
 	result := make([]League, 320)
 	if content[0] == '"' {
 		var l League
@@ -83,7 +88,10 @@ func ParseLeagueSave(file string) {
 		log.Fatal(err)
 		return
 	}
-	SaveLeagueMysql(&les)
+	if les != nil {
+		SaveLeagueMysql(&les)
+	}
+
 }
 
 func SaveLeagueMysql(les *[]League) {

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"bytes"
 	"strconv"
-	"github.com/labstack/gommon/log"
+	"log"
 )
 
 type Match struct {
@@ -47,9 +47,15 @@ func (ma Match) SaveMysql() {
 // 解析match文件
 func ParseMatchFile(file string) ([]Match, error) {
 	content, err := ioutil.ReadFile(file)
+
 	if err != nil {
 		return nil, err
 	}
+
+	if len(content) > 0 {
+		return nil, nil
+	}
+
 	result := make([]Match, 32)
 	if content[0] == '"' {
 		var m Match
@@ -74,7 +80,9 @@ func ParseMatchSave(file string) {
 		log.Fatal(err)
 		return
 	}
-	SaveMatchMysql(&mas)
+	if mas != nil {
+		SaveMatchMysql(&mas)
+	}
 }
 
 // 保存比赛到Mysql
