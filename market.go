@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"strconv"
 	"log"
-	"fmt"
 )
 
 var MarketFields = []string{
@@ -38,9 +37,8 @@ func ParseMarketFile(file string) ([]Market, error) {
 	if err != nil {
 		return nil, err
 	}
-	var result []Market
+	result := make([]Market, 32)
 	if content[0] == '"' {
-		fmt.Println("one")
 		var m Market
 		err = json.Unmarshal(content, &m)
 		if err != nil {
@@ -48,7 +46,6 @@ func ParseMarketFile(file string) ([]Market, error) {
 		}
 		result = append(result, m)
 	} else if content[0] == '[' {
-		fmt.Println("array")
 		err = json.Unmarshal(content, &result)
 		if err != nil {
 			return nil, err
