@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"bytes"
 	"strconv"
-	"fmt"
 )
 
 type Match struct {
@@ -44,79 +43,7 @@ func (ma Match) SaveMysql() {
 	Check(err)
 }
 
-func SaveMysql(mas []Match) {
-	masCnt := len(mas)
-	fieldsCnt := len(MatchFields)
-	var fieldsBuf bytes.Buffer
-	var updateBuf bytes.Buffer
-	for i,matchField := range MatchFields {
-		// [a,b,c] -> a,b,c
-		fieldsBuf.WriteString(matchField)
-		// [a,b,c] -> a=VALUES(a),b=VALUES(b),c=VALUES(c)
-		updateBuf.WriteString(matchField)
-		updateBuf.WriteString("=VALUES(")
-		updateBuf.WriteString(matchField)
-		updateBuf.WriteString(")")
-		if i != fieldsCnt {
-			fieldsBuf.WriteString(",")
-			updateBuf.WriteString(",")
-		}
-	}
-
-	var buf bytes.Buffer
-	buf.WriteString("INSERT INTO `")
-	buf.WriteString("radar_matches")
-	buf.WriteString("`(id,")
-	buf.WriteString(fieldsBuf.String())
-	buf.WriteString(")VALUES")
-	for i,ma := range mas {
-		buf.WriteString("(")
-		buf.WriteString(strconv.Itoa(ma.Id))
-		buf.WriteString(",")
-		buf.WriteString(ma.Score)
-		buf.WriteString(",")
-		buf.WriteString(ma.StreamURL)
-		buf.WriteString(",")
-		buf.WriteString(strconv.Itoa(ma.Type))
-		buf.WriteString(",")
-		buf.WriteString(strconv.FormatBool(ma.Visible))
-		buf.WriteString(",")
-		buf.WriteString(strconv.FormatBool(ma.Suspended))
-		buf.WriteString(",")
-		buf.WriteString(strconv.Itoa(ma.Status))
-		buf.WriteString(",")
-		buf.WriteString(strconv.Itoa(ma.SportId))
-		buf.WriteString(",")
-		buf.WriteString(strconv.Itoa(ma.TournamentId))
-		buf.WriteString(",")
-		buf.WriteString(strconv.Itoa(ma.HomeTeamId))
-		buf.WriteString(",")
-		buf.WriteString(ma.HomeTeamName)
-		buf.WriteString(",")
-		buf.WriteString(strconv.Itoa(ma.AwayTeamId))
-		buf.WriteString(",")
-		buf.WriteString(ma.AwayTeamName)
-		buf.WriteString(",")
-		buf.WriteString(ma.OutrightName)
-		buf.WriteString(",")
-		buf.WriteString(ma.StartTime)
-		buf.WriteString(",")
-		buf.WriteString(ma.EndTime)
-		buf.WriteString(")")
-		if i!=masCnt{
-			buf.WriteString(",")
-		}
-	}
-	buf.WriteString("ON DUPLICATE KEY UPDATE ")
-	buf.WriteString(updateBuf.String())
-	buf.WriteString(";")
-	fmt.Println(buf.String())
-	}
-
-func saveSql(mas []*Match) {
-
-}
-
+// 解析match文件
 func ParseMatchFile(file string) ([]Match, error) {
 	content, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -139,10 +66,116 @@ func ParseMatchFile(file string) ([]Match, error) {
 	return result, nil
 }
 
+// 解析文件并保存
 func ParseMatchSave(file string) {
 	mas, err := ParseMatchFile(file)
+	SaveMatchMysql(&mas)
 	Check(err)
-	for _, ma := range mas {
-		ma.SaveMysql()
+}
+
+// 保存比赛到Mysql
+func SaveMatchMysql(mas *[]Match) {
+	if len(*mas) <= 0 {
+		return
 	}
+	sql := saveMatchSql(mas)
+	db := GetConnect()
+	_, err := db.Exec(sql)
+	Check(err)
+}
+
+// 保存比赛的sql
+func saveMatchSql(mas *[]Match) string {
+	masCnt := len(*mas)
+	fieldsCnt := len(MatchFields)
+	var fieldsBuf bytes.Buffer
+	var updateBuf bytes.Buffer
+	for i, matchField := range MatchFields {
+		// [a,b,c] -> a,b,c
+		fieldsBuf.WriteString(matchField)
+		// [a,b,c] -> a=VALUES(a),b=VALUES(b),c=VALUES(c)
+		updateBuf.WriteString(matchField)
+		updateBuf.WriteString("=VALUES(")
+		updateBuf.WriteString(matchField)
+		updateBuf.WriteString(")")
+		if i != fieldsCnt-1 {
+			fieldsBuf.WriteString(",")
+			updateBuf.WriteString(",")
+		}
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString("INSERT INTO `")
+	buf.WriteString("radar_matches")
+	buf.WriteString("`(")
+	buf.WriteString(fieldsBuf.String())
+	buf.WriteString(")VALUES")
+
+	// (),(),()
+	for i, ma := range *mas {
+		buf.WriteString("(")
+
+		// "11221"
+		buf.WriteString(strconv.Itoa(ma.Id))
+		buf.WriteString(",")
+
+		// "2:0"
+		buf.WriteString(strconv.Quote(ma.Score))
+		buf.WriteString(",")
+
+		// "http://example.com"
+		buf.WriteString(strconv.Quote(ma.StreamURL))
+		buf.WriteString(",")
+
+		buf.WriteString(strconv.Itoa(ma.Type))
+		buf.WriteString(",")
+
+		buf.WriteString(BoolToStr(ma.Visible))
+		buf.WriteString(",")
+
+		buf.WriteString(BoolToStr(ma.Suspended))
+		buf.WriteString(",")
+
+		buf.WriteString(strconv.Itoa(ma.Status))
+		buf.WriteString(",")
+
+		buf.WriteString(strconv.Itoa(ma.SportId))
+		buf.WriteString(",")
+
+		buf.WriteString(strconv.Itoa(ma.TournamentId))
+		buf.WriteString(",")
+
+		buf.WriteString(strconv.Itoa(ma.HomeTeamId))
+		buf.WriteString(",")
+
+		// "example"
+		buf.WriteString(strconv.Quote(ma.HomeTeamName))
+		buf.WriteString(",")
+
+		buf.WriteString(strconv.Itoa(ma.AwayTeamId))
+		buf.WriteString(",")
+
+		// "example"
+		buf.WriteString(strconv.Quote(ma.AwayTeamName))
+		buf.WriteString(",")
+
+		// "outright"
+		buf.WriteString(strconv.Quote(ma.OutrightName))
+		buf.WriteString(",")
+
+		// "2008-08-02T11:22:32"
+		buf.WriteString(strconv.Quote(ma.StartTime))
+		buf.WriteString(",")
+
+		// "2008-08-02T11:22:32"
+		buf.WriteString(strconv.Quote(ma.EndTime))
+		buf.WriteString(") ")
+		if i != masCnt-1 {
+			buf.WriteString(",")
+		}
+	}
+	buf.WriteString("ON DUPLICATE KEY UPDATE ")
+	buf.WriteString(updateBuf.String())
+	buf.WriteString(";")
+	return buf.String()
 }

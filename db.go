@@ -34,11 +34,6 @@ func GetInsertSql(table string, fields ...string) string {
 	return buf.String()
 }
 
-func FindOneHas(db *sql.DB, sql string, args ...interface{}) (bool) {
-	rows := db.QueryRow(sql,args...)
-
-	rows.Scan()
-}
 
 func NewConnect() *sql.DB {
 	db, err := sql.Open("mysql", dsn())
