@@ -64,11 +64,7 @@ func ParseMarketFile(file string) ([]Market, error) {
 
 func ParseMarketSave(file string) {
 	mks, err := ParseMarketFile(file)
-	if err != nil {
-		log.Fatal(err)
-		debug.PrintStack()
-
-	} else {
+	if err == nil {
 		SaveMarketMysql(&mks)
 	}
 }

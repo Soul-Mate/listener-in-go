@@ -88,10 +88,7 @@ func ParseLeagueFile(file string) ([]League, error) {
 
 func ParseLeagueSave(file string) {
 	les, err := ParseLeagueFile(file)
-	if err != nil {
-		log.Fatal(err)
-		debug.PrintStack()
-	} else {
+	if err == nil {
 		SaveLeagueMysql(&les)
 	}
 }

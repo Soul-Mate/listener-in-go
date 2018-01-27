@@ -80,10 +80,7 @@ func ParseMatchFile(file string) ([]Match, error) {
 // 解析文件并保存
 func ParseMatchSave(file string) {
 	mas, err := ParseMatchFile(file)
-	if err != nil {
-		log.Fatal(err)
-		debug.PrintStack()
-	} else {
+	if err == nil {
 		SaveMatchMysql(&mas)
 	}
 }
