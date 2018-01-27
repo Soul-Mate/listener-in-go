@@ -3,6 +3,9 @@ package main
 import (
 	"io/ioutil"
 	"encoding/json"
+	"bytes"
+	"strconv"
+	"fmt"
 )
 
 type Match struct {
@@ -39,6 +42,79 @@ func (ma Match) SaveMysql() {
 		ma.TournamentId, ma.HomeTeamId, ma.HomeTeamName, ma.AwayTeamName,
 		ma.AwayTeamName, ma.OutrightName, ma.StartTime, ma.EndTime)
 	Check(err)
+}
+
+func SaveMysql(mas []Match) {
+	masCnt := len(mas)
+	fieldsCnt := len(MatchFields)
+	var fieldsBuf bytes.Buffer
+	var updateBuf bytes.Buffer
+	for i,matchField := range MatchFields {
+		// [a,b,c] -> a,b,c
+		fieldsBuf.WriteString(matchField)
+		// [a,b,c] -> a=VALUES(a),b=VALUES(b),c=VALUES(c)
+		updateBuf.WriteString(matchField)
+		updateBuf.WriteString("=VALUES(")
+		updateBuf.WriteString(matchField)
+		updateBuf.WriteString(")")
+		if i != fieldsCnt {
+			fieldsBuf.WriteString(",")
+			updateBuf.WriteString(",")
+		}
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString("INSERT INTO `")
+	buf.WriteString("radar_matches")
+	buf.WriteString("`(id,")
+	buf.WriteString(fieldsBuf.String())
+	buf.WriteString(")VALUES")
+	for i,ma := range mas {
+		buf.WriteString("(")
+		buf.WriteString(strconv.Itoa(ma.Id))
+		buf.WriteString(",")
+		buf.WriteString(ma.Score)
+		buf.WriteString(",")
+		buf.WriteString(ma.StreamURL)
+		buf.WriteString(",")
+		buf.WriteString(strconv.Itoa(ma.Type))
+		buf.WriteString(",")
+		buf.WriteString(strconv.FormatBool(ma.Visible))
+		buf.WriteString(",")
+		buf.WriteString(strconv.FormatBool(ma.Suspended))
+		buf.WriteString(",")
+		buf.WriteString(strconv.Itoa(ma.Status))
+		buf.WriteString(",")
+		buf.WriteString(strconv.Itoa(ma.SportId))
+		buf.WriteString(",")
+		buf.WriteString(strconv.Itoa(ma.TournamentId))
+		buf.WriteString(",")
+		buf.WriteString(strconv.Itoa(ma.HomeTeamId))
+		buf.WriteString(",")
+		buf.WriteString(ma.HomeTeamName)
+		buf.WriteString(",")
+		buf.WriteString(strconv.Itoa(ma.AwayTeamId))
+		buf.WriteString(",")
+		buf.WriteString(ma.AwayTeamName)
+		buf.WriteString(",")
+		buf.WriteString(ma.OutrightName)
+		buf.WriteString(",")
+		buf.WriteString(ma.StartTime)
+		buf.WriteString(",")
+		buf.WriteString(ma.EndTime)
+		buf.WriteString(")")
+		if i!=masCnt{
+			buf.WriteString(",")
+		}
+	}
+	buf.WriteString("ON DUPLICATE KEY UPDATE ")
+	buf.WriteString(updateBuf.String())
+	buf.WriteString(";")
+	fmt.Println(buf.String())
+	}
+
+func saveSql(mas []*Match) {
+
 }
 
 func ParseMatchFile(file string) ([]Match, error) {
