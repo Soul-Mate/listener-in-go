@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"bytes"
 	"strconv"
+	"log"
 )
 
 type League struct {
@@ -58,7 +59,7 @@ func ParseLeagueFile(file string) ([]League, error) {
 	if err != nil {
 		return nil, err
 	}
-	var result []League
+	result := make([]League, 320)
 	if content[0] == '"' {
 		var l League
 		err = json.Unmarshal(content, &l)
@@ -76,9 +77,12 @@ func ParseLeagueFile(file string) ([]League, error) {
 	return result, nil
 }
 
-func ParseLeagueSave(file string)  {
+func ParseLeagueSave(file string) {
 	les, err := ParseLeagueFile(file)
-	Check(err)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	SaveLeagueMysql(&les)
 }
 
