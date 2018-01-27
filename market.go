@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"bytes"
 	"strconv"
-	"github.com/labstack/gommon/log"
+	"log"
 )
 
 var MarketFields = []string{
