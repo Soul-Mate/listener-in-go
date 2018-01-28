@@ -196,3 +196,4 @@ func saveMatchSql(mas *[]Match) string {
 	buf.WriteString(";")
 	return buf.String()
 }
+

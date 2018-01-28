@@ -6,7 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-redis/redis"
 	"strings"
-	"github.com/labstack/gommon/log"
+	"log"
 )
 
 var db *sql.DB
