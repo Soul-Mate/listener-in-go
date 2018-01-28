@@ -45,7 +45,7 @@ func BaseParse(file string) ([]interface{}, error) {
 }
 
 func BaseSave(table string, fields []string, jsonKeys []string, data ... interface{}) {
-	//db := GetConnect()
+	//db := GetMysqlConnect()
 	//sql := GetInsertSql(table, fields...)
 	for _, v := range data {
 		vMap := v.(map[string]interface{})

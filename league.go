@@ -26,7 +26,7 @@ var LeagueTournamentFields = []string{
 }
 
 func (le League) SaveMysql() {
-	db := GetConnect()
+	db := GetMysqlConnect()
 	leSql := GetInsertSql("radar_leagues", LeagueFields...)
 	leTourSql := GetInsertSql("radar_league_tournaments", LeagueTournamentFields...)
 	_, err := db.Exec(leSql, le.Id, le.CategoryName, le.SportId)
@@ -92,7 +92,7 @@ func ParseLeagueSave(file string) {
 }
 
 func SaveLeagueMysql(les *[]League) {
-	db := GetConnect()
+	db := GetMysqlConnect()
 	leSql, tourSql := saveLeagueSql(les)
 	_, err := db.Exec(leSql)
 	Check(err)

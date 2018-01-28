@@ -38,7 +38,7 @@ var MatchFields = []string{
 }
 
 func (ma Match) SaveMysql() {
-	db := GetConnect()
+	db := GetMysqlConnect()
 	sql := GetInsertSql("radar_matches", MatchFields...)
 	_, err := db.Exec(sql, ma.Id, ma.Score, ma.StreamURL, ma.Type,
 		ma.Visible, ma.Suspended, ma.Status, ma.SportId,
@@ -96,7 +96,7 @@ func SaveMatchMysql(mas *[]Match) {
 		return
 	}
 	sql := saveMatchSql(mas)
-	db := GetConnect()
+	db := GetMysqlConnect()
 	_, err := db.Exec(sql)
 	Check(err)
 }
