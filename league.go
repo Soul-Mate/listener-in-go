@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"strconv"
 	"errors"
+	"log"
 )
 
 var LeagueJsonNone = errors.New("league file none")
@@ -88,6 +89,8 @@ func ParseLeagueSave(file string) {
 	les, err := ParseLeagueFile(file)
 	if err == nil {
 		SaveLeagueMysql(&les)
+	} else {
+		log.Fatal(err)
 	}
 }
 
@@ -95,9 +98,13 @@ func SaveLeagueMysql(les *[]League) {
 	db := GetMysqlConnect()
 	leSql, tourSql := saveLeagueSql(les)
 	_, err := db.Exec(leSql)
-	Check(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	_, err = db.Exec(tourSql)
-	Check(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func saveLeagueSql(les *[]League) (string, string) {

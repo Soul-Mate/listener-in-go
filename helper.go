@@ -1,6 +1,8 @@
 package main
 
-import "strconv"
+import (
+	"strconv"
+)
 
 // bool值转string
 func BoolToStr(v bool) string {
@@ -17,6 +19,8 @@ func InterfaceToStr(v interface{}) string {
 		return strconv.Itoa(v.(int))
 	case string:
 		return v.(string)
+	case float64:
+		return strconv.FormatFloat(v.(float64),'f',-1,32)
 	default:
 		return ""
 	}

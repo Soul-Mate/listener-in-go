@@ -8,6 +8,8 @@ import (
 // 定时器
 func TimerWrite() {
 	go func() {
+		sync := GetListenerSync()
+		fmt.Println(<-sync.SaveMarketC)
 		fmt.Println("start timer write")
 		t := time.NewTimer(nowAdd6HourUnix())
 		for {

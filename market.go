@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"strconv"
 	"github.com/vmihailenco/msgpack"
+	"log"
+	"strings"
 )
 
 var MarketJsonNone = errors.New("market file json none data")
@@ -38,16 +40,6 @@ type Market struct {
 	IsLive    bool   `json:"IsLive"`
 	Visible   bool   `json:"Visible"`
 	Odds      []Odds `json:"Odds"`
-	//Odds      []map[string]interface{} `json:"Odds"`
-}
-
-// 序列化odds
-func (mk Market) MarshalOdds() string {
-	bs, err := json.Marshal(mk.Odds)
-	if err != nil {
-		return ""
-	}
-	return string(bs)
 }
 
 func ParseMarketFile(file string) ([]Market, error) {
@@ -78,26 +70,35 @@ func ParseMarketFile(file string) ([]Market, error) {
 
 func ParseMarketSave(file string) {
 	mks, err := ParseMarketFile(file)
-	if err == nil {
+	if err != nil {
+		log.Println(err)
+	} else {
 		SaveMarketMysql(&mks)
 		fmt.Println("save market")
 	}
 }
 
 func SaveMarketMysql(mks *[]Market) {
+	if len(*mks)  <= 0 {
+		return
+	}
 	db := GetMysqlConnect()
 	sql := saveMarketSql(mks)
-	_, err := db.Exec(sql)
-	Check(err)
+	if sql != "" {
+		res, err := db.Exec(sql)
+		if err != nil {
+			fmt.Println(err,res)
+		}
+	}
 }
 
 func saveMarketSql(mks *[]Market) string {
 	var (
 		buf       bytes.Buffer
+		valuesBuf bytes.Buffer
 		fieldBuf  bytes.Buffer
 		updateBuf bytes.Buffer
 		fieldCnt  = len(MarketFields)
-		mksCnt    = len(*mks)
 	)
 	buf.WriteString("INSERT INTO `radar_markets`(")
 
@@ -108,8 +109,9 @@ func saveMarketSql(mks *[]Market) string {
 		fieldBuf.WriteString("`")
 
 		// [a,b] -> a=VALUES(a), b=VALUES(b)
+		updateBuf.WriteString("`")
 		updateBuf.WriteString(field)
-		updateBuf.WriteString("=VALUES(")
+		updateBuf.WriteString("`=VALUES(")
 		updateBuf.WriteString(field)
 		updateBuf.WriteString(")")
 		if i != fieldCnt-1 {
@@ -121,51 +123,16 @@ func saveMarketSql(mks *[]Market) string {
 	buf.WriteString(fieldBuf.String())
 	buf.WriteString(")VALUES")
 
-	for i, mk := range *mks {
-		// 滚盘 且 比赛未结束
-		if mk.IsLive && mk.Status != 3 {
-			// 写入缓存
-			mk.Set()
-			continue
-		} else {
-			tmp := mk.Get()
-			if tmp != nil {
-				mk = *tmp.(*Market)
-				mk.Del()
-			}
-		}
-
-		buf.WriteString("(")
-		buf.WriteString(strconv.Itoa(mk.Id))
-		buf.WriteString(",")
-
-		buf.WriteString(strconv.Quote(mk.Name))
-		buf.WriteString(",")
-
-		buf.WriteString(strconv.Itoa(mk.MatchId))
-		buf.WriteString(",")
-
-		buf.WriteString(BoolToStr(mk.Suspended))
-		buf.WriteString(",")
-
-		buf.WriteString(strconv.Itoa(mk.Status))
-		buf.WriteString(",")
-
-		buf.WriteString(BoolToStr(mk.IsLive))
-		buf.WriteString(",")
-
-		buf.WriteString(BoolToStr(mk.Visible))
-		buf.WriteString(",")
-
-		// odds map to string
-		buf.WriteString(strconv.Quote(mk.MarshalOdds()))
-		buf.WriteString(")")
-
-		if i != mksCnt-1 {
-			buf.WriteString(",")
-		}
+	for _, mk := range *mks {
+		valuesBuf.WriteString(mk.InsetValueSql())
 	}
-
+	// 没有value 插入
+	values := valuesBuf.String()
+	if values == "" {
+		return ""
+	}
+	values = strings.TrimRight(values, ",")
+	buf.WriteString(values)
 	buf.WriteString("ON DUPLICATE KEY UPDATE ")
 	buf.WriteString(updateBuf.String())
 	buf.WriteString(";")
@@ -221,4 +188,61 @@ func (mk Market) Del() error {
 		return err
 	}
 	return nil
+}
+
+// 生成market插入格式的sql
+func (mk Market) InsetValueSql() string {
+	// 滚盘 且 比赛未结束
+	if mk.IsLive && mk.Status != 3 {
+		// 写入缓存
+		mk.Set()
+		return ""
+	} else {
+		// 滚盘 且 比赛结束
+		tmp := mk.Get()
+		if tmp != nil {
+			tmp := *tmp.(*Market)
+			tmp.Del()
+			return tmp.InsetValueSql()
+		}
+	}
+
+	var buf bytes.Buffer
+
+	buf.WriteString("(")
+	buf.WriteString(strconv.Itoa(mk.Id))
+	buf.WriteString(",")
+
+	buf.WriteString(strconv.Quote(mk.Name))
+	buf.WriteString(",")
+
+	buf.WriteString(strconv.Itoa(mk.MatchId))
+	buf.WriteString(",")
+
+	buf.WriteString(BoolToStr(mk.Suspended))
+	buf.WriteString(",")
+
+	buf.WriteString(strconv.Itoa(mk.Status))
+	buf.WriteString(",")
+
+	buf.WriteString(BoolToStr(mk.IsLive))
+	buf.WriteString(",")
+
+	buf.WriteString(BoolToStr(mk.Visible))
+	buf.WriteString(",")
+
+	// odds map to string
+	buf.WriteString(strconv.Quote(mk.MarshalOdds()))
+	buf.WriteString(")")
+	buf.WriteString(",")
+	return buf.String()
+}
+
+// 序列化odds
+func (mk Market) MarshalOdds() string {
+	bs, err := json.Marshal(mk.Odds)
+	if err != nil {
+		return ""
+	}
+	return string(bs)
 }

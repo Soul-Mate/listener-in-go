@@ -41,34 +41,10 @@ func ParseListener(file string, config *Config) {
 	fmt.Println("modify file: ", file)
 
 	if matched, err := regexp.MatchString(`match[0-9]+\.json$`, file); matched && err == nil {
-		time.AfterFunc(time.Second, func() {
-			ParseMatchSave(file)
-		})
-	} else {
-		Check(err)
+		ParseMatchSave(file)
 	}
 
 	if matched, err := regexp.MatchString(`market[0-9]+\.json`, file); matched && err == nil {
-		time.AfterFunc(time.Second, func() {
-			ParseMarketSave(file)
-		})
-	} else {
-		Check(err)
+		ParseMarketSave(file)
 	}
-	// filePrefix := config.Listener.RootPath + "/"
-	// if file == filePrefix+config.Listener.StaticFiles.League {
-	// 	ParseLeagueSave(file)
-	// }
-
-	// if file == filePrefix+config.Listener.StaticFiles.MatchFull {
-	// 	ParseMatchSave(file)
-	// }
-
-	// if file == filePrefix+config.Listener.StaticFiles.MarketFull {
-	// 	ParseMarketSave(file)
-	// }
-
-	// if file == filePrefix+config.Listener.StaticFiles.LeaguesFull {
-	// 	ParseLeagueSave(file)
-	// }
 }
