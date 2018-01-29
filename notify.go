@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"regexp"
+	"time"
 )
 
 func StartListener() {
@@ -31,7 +32,8 @@ func StartListener() {
 }
 
 func ReadListener(event fsnotify.Event, config *Config) {
-	if event.Op&fsnotify.Create == fsnotify.Create {
+	if event.Op&fsnotify.Create == fsnotify.Create ||
+		event.Op&fsnotify.Write == fsnotify.Write {
 		ParseListener(event.Name, config)
 	}
 }
@@ -40,10 +42,14 @@ func ParseListener(file string, config *Config) {
 	fmt.Println("modify file: ", file)
 
 	if matched, err := regexp.MatchString(`match[0-9]+\.json$`, file); matched && err == nil {
-		ParseMatchSave(file)
+		time.AfterFunc(time.Second*3, func() {
+			ParseMatchSave(file)
+		})
 	}
 
 	if matched, err := regexp.MatchString(`market[0-9]+\.json`, file); matched && err == nil {
-		ParseMarketSave(file)
+		time.AfterFunc(time.Second*3, func() {
+			ParseMarketSave(file)
+		})
 	}
 }
