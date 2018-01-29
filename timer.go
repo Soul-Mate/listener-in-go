@@ -8,21 +8,19 @@ import (
 // 定时器
 func TimerWrite() {
 	go func() {
-		sync := GetListenerSync()
-		fmt.Println(<-sync.SaveMarketC)
+		lisSync := GetListenerSync()
+		<-lisSync.SaveMarketC
 		fmt.Println("start timer write")
-		t := time.NewTimer(nowAdd6HourUnix())
+		t := time.NewTimer(time.Hour * 6)
 		for {
 			select {
 			case <-t.C:
-				time.AfterFunc(time.Second, func() {
-					writeMarketFull()
-					writeMatchFull()
-					writeLeagueFull()
-					writeLeague()
-					fmt.Println("start timer write done")
-					t.Reset(nowAdd6HourUnix())
-				})
+				writeMarketFull()
+				writeMatchFull()
+				writeLeagueFull()
+				writeLeague()
+				fmt.Println("start timer write done")
+				t.Reset(time.Hour * 6)
 			}
 		}
 	}()
