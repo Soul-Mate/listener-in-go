@@ -49,6 +49,7 @@ func ReadListener(event fsnotify.Event, config *Config) {
 				fmt.Println("写入完毕：", fr.file)
 				// 删除
 				DelFileRefMap(fr.file)
+				fmt.Println(len(fileRefMap))
 				fmt.Println("删除完毕：", fr.file)
 			} else {
 				fmt.Println("增加引用计数：", fr.ref)
@@ -56,7 +57,7 @@ func ReadListener(event fsnotify.Event, config *Config) {
 				fmt.Println("计数增加完毕：", fr.ref)
 			}
 		} else {
-			fmt.Println("设置fileRef：", fr.file)
+			fmt.Println("设置fileRef")
 			SetFileRefMap(event.Name)
 		}
 	}
@@ -89,6 +90,7 @@ func GetFileRefMap(file string) (*fileRef) {
 }
 
 func SetFileRefMap(file string) {
+	fmt.Println(file)
 	fileRefMap[file] = new(fileRef)
 	fileRefMap[file].file = file
 	fileRefMap[file].ref = 1
