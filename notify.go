@@ -44,19 +44,19 @@ func ReadListener(event fsnotify.Event, config *Config) {
 		if fr := GetFileRefMap(event.Name); fr != nil {
 			// 达到计数值
 			if fr.ref >= 2 {
-				fmt.Println("开始写入：",fr.file)
+				fmt.Println("开始写入：", fr.file)
 				ParseListener(*fr)
-				fmt.Println("写入完毕：",fr.file)
+				fmt.Println("写入完毕：", fr.file)
 				// 删除
 				DelFileRefMap(fr.file)
-				fmt.Println("删除完毕：",fr.file)
+				fmt.Println("删除完毕：", fr.file)
 			} else {
-				fmt.Println("增加引用计数：",fr.ref)
+				fmt.Println("增加引用计数：", fr.ref)
 				fr.AddFileRefValue()
-				fmt.Println("计数增加完毕：",fr.ref)
+				fmt.Println("计数增加完毕：", fr.ref)
 			}
 		} else {
-			fmt.Println("设置fileRef：",fr.file)
+			fmt.Println("设置fileRef：", fr.file)
 			SetFileRefMap(event.Name)
 		}
 	}
@@ -77,8 +77,7 @@ func ParseListener(fr fileRef) {
 	}
 }
 
-
-func (fr *fileRef )AddFileRefValue()  {
+func (fr *fileRef) AddFileRefValue() {
 	fr.ref++
 }
 
@@ -94,11 +93,11 @@ func SetFileRefMap(file string) {
 		file: file,
 		ref:  1,
 	}
+
+	fileRefMap[file] = new(fileRef)
 	fileRefMap[file] = fr
 }
 
 func DelFileRefMap(file string) {
 	delete(fileRefMap, file)
 }
-
-
