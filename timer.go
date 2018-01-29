@@ -30,7 +30,7 @@ func TimerWrite() {
 
 // 当前时间增加6小时后的unix时间戳
 func nowAdd6HourUnix() time.Duration {
-	return time.Duration(time.Now().Add(time.Second * 5).Unix())
+	return time.Duration(time.Now().Add(time.Hour * 6).Unix())
 }
 
 func writeMarketFull() {

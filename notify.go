@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"regexp"
-	"time"
 )
 
 func StartListener() {
