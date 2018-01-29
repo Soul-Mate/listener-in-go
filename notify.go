@@ -89,6 +89,7 @@ func GetFileRefMap(file string) (*fileRef) {
 }
 
 func SetFileRefMap(file string) {
+	fileRefMap = make(map[string]*fileRef)
 	fr := &fileRef{
 		file: file,
 		ref:  1,
