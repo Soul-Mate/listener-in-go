@@ -12,7 +12,7 @@ type fileRef struct {
 	file string
 }
 
-var fileRefMap map[string]*fileRef
+var fileRefMap = make(map[string]*fileRef)
 
 func StartListener() {
 	config := GetConfig()
@@ -89,14 +89,9 @@ func GetFileRefMap(file string) (*fileRef) {
 }
 
 func SetFileRefMap(file string) {
-	fileRefMap = make(map[string]*fileRef)
-	fr := &fileRef{
-		file: file,
-		ref:  1,
-	}
-
 	fileRefMap[file] = new(fileRef)
-	fileRefMap[file] = fr
+	fileRefMap[file].file = file
+	fileRefMap[file].ref = 1
 }
 
 func DelFileRefMap(file string) {
