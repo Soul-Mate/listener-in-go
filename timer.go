@@ -26,11 +26,6 @@ func TimerWrite() {
 	}()
 }
 
-// 当前时间增加6小时后的unix时间戳
-func nowAdd6HourUnix() time.Duration {
-	return time.Duration(time.Now().Add(time.Hour * 6).Unix())
-}
-
 func writeMarketFull() {
 	config := GetConfig()
 	ParseMarketSave(config.Listener.RootPath + "/" + config.Listener.StaticFiles.MarketFull)

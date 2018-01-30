@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"os"
 	"fmt"
-	"regexp"
 	"time"
+	"regexp"
 )
 
 type ListenerSync struct {
@@ -17,9 +17,9 @@ var listenerSync *ListenerSync
 
 func main() {
 	// 启动时将根目录文件写入
-	//go WalkRootPath()
+	go WalkRootPath()
 	// 定时器
-	//TimerWrite()
+	TimerWrite()
 	// 初始化监听器
 	StartListener()
 }
@@ -77,7 +77,7 @@ func WalkRootPath() {
 					fmt.Println(file)
 				})
 			}
-			//
+
 			if file == rootPath+"/"+config.Listener.StaticFiles.MarketFull {
 				time.AfterFunc(time.Second, func() {
 					ParseMarketSave(file)

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"log"
 	"strings"
+	"time"
 )
 
 var MatchJsonNone = errors.New("match json file none")
@@ -148,6 +149,15 @@ func saveMatchSql(mas *[]Match) string {
 	return buf.String()
 }
 
+func (ma Match) Add8Hour() string {
+	t, err := time.Parse("2006-01-02T15:04:05", ma.StartTime)
+	if err != nil {
+		return ""
+	}
+	then := time.Date(t.Year(), t.Month(), t.Day(), t.Hour()+8, t.Minute(), t.Second(), t.Nanosecond(), time.Local)
+	return then.Format("2006-01-02 15:04:05")
+}
+
 // 生成match插入格式的sql
 func (ma Match) InsetValueSql() string {
 	var buf bytes.Buffer
@@ -202,7 +212,7 @@ func (ma Match) InsetValueSql() string {
 	buf.WriteString(",")
 
 	// "2008-08-02T11:22:32"
-	buf.WriteString(strconv.Quote(ma.StartTime))
+	buf.WriteString(strconv.Quote(ma.Add8Hour()))
 	buf.WriteString(",")
 
 	// "2008-08-02T11:22:32"
