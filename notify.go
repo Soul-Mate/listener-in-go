@@ -40,18 +40,15 @@ func StartListener() {
 
 func ReadListener(event fsnotify.Event, config *Config) {
 	if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
-		switch event.Name {
-		case config.Listener.RootPath + "/" + config.Listener.StaticFiles.League:
-		case config.Listener.RootPath + "/" + config.Listener.StaticFiles.LeaguesFull:
-		case config.Listener.RootPath + "/" + config.Listener.StaticFiles.MatchFull:
-		case config.Listener.RootPath + "/" + config.Listener.StaticFiles.MarketFull:
-		default:
+		if matched, err := regexp.MatchString(`match[0-9]+\.json$`, event.Name); matched && err == nil {
 			// 存在文件引用
 			if fr := GetFileRefMap(event.Name); fr != nil {
 				// 达到计数值
 				if fr.ref >= 2 {
 					fmt.Println("开始写入：", fr.file)
-					ParseListener(*fr)
+					time.AfterFunc(time.Second*3, func() {
+						ParseMatchSave(fr.file)
+					})
 					fmt.Println("写入完毕：", fr.file)
 					// 删除
 					DelFileRefMap(fr.file)
@@ -67,21 +64,31 @@ func ReadListener(event fsnotify.Event, config *Config) {
 				SetFileRefMap(event.Name)
 			}
 		}
-	}
-}
 
-func ParseListener(fr fileRef) {
-
-	if matched, err := regexp.MatchString(`match[0-9]+\.json$`, fr.file); matched && err == nil {
-		time.AfterFunc(time.Second*3, func() {
-			ParseMatchSave(fr.file)
-		})
-	}
-
-	if matched, err := regexp.MatchString(`market[0-9]+\.json`, fr.file); matched && err == nil {
-		time.AfterFunc(time.Second*3, func() {
-			ParseMarketSave(fr.file)
-		})
+		if matched, err := regexp.MatchString(`market[0-9]+\.json`, event.Name); matched && err == nil {
+			// 存在文件引用
+			if fr := GetFileRefMap(event.Name); fr != nil {
+				// 达到计数值
+				if fr.ref >= 2 {
+					fmt.Println("开始写入：", fr.file)
+					time.AfterFunc(time.Second*3, func() {
+						ParseMarketSave(fr.file)
+					})
+					fmt.Println("写入完毕：", fr.file)
+					// 删除
+					DelFileRefMap(fr.file)
+					fmt.Println(len(fileRefMap))
+					fmt.Println("删除完毕：", fr.file)
+				} else {
+					fmt.Println("增加引用计数：", fr.ref)
+					fr.AddFileRefValue()
+					fmt.Println("计数增加完毕：", fr.ref)
+				}
+			} else {
+				fmt.Println("设置fileRef")
+				SetFileRefMap(event.Name)
+			}
+		}
 	}
 }
 
