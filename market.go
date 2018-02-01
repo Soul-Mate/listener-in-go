@@ -78,7 +78,7 @@ func ParseMarketSave(file string) {
 }
 
 func SaveMarketMysql(mks *[]Market) {
-	if len(*mks)  <= 0 {
+	if len(*mks) <= 0 {
 		return
 	}
 	db := GetMysqlConnect()
@@ -86,7 +86,7 @@ func SaveMarketMysql(mks *[]Market) {
 	if sql != "" {
 		res, err := db.Exec(sql)
 		if err != nil {
-			fmt.Println(err,res)
+			fmt.Println(err, res)
 		}
 	}
 }
@@ -193,15 +193,18 @@ func (mk Market) Del() error {
 func (mk Market) InsetValueSql() string {
 	// 滚盘 且 比赛未结束
 	if mk.IsLive && mk.Status != 3 {
+		fmt.Println(mk.Id, " cache")
 		// 写入缓存
 		mk.Set()
 		return ""
 	} else {
 		// 滚盘 且 比赛结束
 		tmp := mk.Get()
+		fmt.Println(mk.Id, "get cache")
 		if tmp != nil {
 			tmp := *tmp.(*Market)
 			tmp.Del()
+			fmt.Println(mk.Id, "del cache")
 			return tmp.InsetValueSql()
 		}
 	}
@@ -224,6 +227,7 @@ func (mk Market) InsetValueSql() string {
 	buf.WriteString(strconv.Itoa(mk.Status))
 	buf.WriteString(",")
 
+	fmt.Println(mk.Id, " is live :", BoolToStr(mk.IsLive))
 	buf.WriteString(BoolToStr(mk.IsLive))
 	buf.WriteString(",")
 
