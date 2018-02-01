@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"strconv"
 	"github.com/vmihailenco/msgpack"
-	"log"
 	"strings"
 )
 
@@ -71,7 +70,7 @@ func ParseMarketFile(file string) ([]Market, error) {
 func ParseMarketSave(file string) {
 	mks, err := ParseMarketFile(file)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	} else {
 		SaveMarketMysql(&mks)
 		fmt.Println("save market")

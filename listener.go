@@ -17,9 +17,9 @@ var listenerSync *ListenerSync
 
 func main() {
 	// 启动时将根目录文件写入
-	go WalkRootPath()
+	//go WalkRootPath()
 	// 定时器
-	TimerWrite()
+	//TimerWrite()
 	// 初始化监听器
 	StartListener()
 }

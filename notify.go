@@ -4,7 +4,6 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"regexp"
 	"time"
-	"fmt"
 )
 
 type fileRef struct {
@@ -57,25 +56,9 @@ func ReadListener(event fsnotify.Event, config *Config) {
 }
 
 func CallWrite(e fsnotify.Event, f func(file string)) {
-	fr := GetFileRefMap(e.Name)
-	if fr == nil {
-		fmt.Println("设置fileRef")
-		SetFileRefMap(e.Name)
-		fr.AddFileRefValue()
-		return
-	}
-	if fr.ref >= 2 {
-		fmt.Println("开始写入：", fr.file)
-		time.AfterFunc(time.Second*3, func() {
-			f(fr.file)
-		})
-		fmt.Println("写入完毕：", fr.file)
-		DelFileRefMap(fr.file)
-		fmt.Println("删除完毕：", fr.file)
-		fmt.Println(len(fileRefMap))
-	} else {
-		fr.AddFileRefValue()
-	}
+	time.AfterFunc(time.Second*3, func() {
+		f(e.Name)
+	})
 }
 
 func (fr *fileRef) AddFileRefValue() {
@@ -90,7 +73,6 @@ func GetFileRefMap(file string) (*fileRef) {
 }
 
 func SetFileRefMap(file string) {
-	fmt.Println(file)
 	fileRefMap[file] = new(fileRef)
 	fileRefMap[file].file = file
 	fileRefMap[file].ref = 1
