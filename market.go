@@ -160,23 +160,23 @@ func (mk Market) Set() error {
 }
 
 // 从缓存系统中取出market数据
-func (mk Market) Get() interface{} {
+func (mk Market) Get() (interface{}, bool) {
 	client := GetRedisConnect()
 	cmd := client.Get(strconv.Itoa(mk.Id))
 	_, err := cmd.Result()
 	if err != nil {
-		return nil
+		return nil, false
 	}
 	bs, err := cmd.Bytes()
 	if err != nil {
-		return nil
+		return nil, false
 	}
 	m := new(Market)
 	err = msgpack.Unmarshal(bs, m)
 	if err != nil {
-		return nil
+		return nil, false
 	}
-	return m
+	return m, true
 }
 
 // 从缓存系统中删除market数据
@@ -191,21 +191,21 @@ func (mk Market) Del() error {
 
 // 生成market插入格式的sql
 func (mk Market) InsetValueSql() string {
-	// 滚盘 且 比赛未结束
+	// is live & match not end
 	if mk.IsLive && mk.Status != 3 {
 		fmt.Println(mk.Id, " cache")
 		// 写入缓存
 		mk.Set()
 		return ""
-	} else {
-		// 滚盘 且 比赛结束
-		tmp := mk.Get()
-		fmt.Println(mk.Id, "get cache")
-		if tmp != nil {
+	}
+
+	// is live & match end
+	if mk.IsLive && mk.Status == 3 {
+		if tmp,ok := mk.Get(); ok {
 			tmp := *tmp.(*Market)
+			mk = tmp
+			fmt.Println(mk)
 			tmp.Del()
-			fmt.Println(mk.Id, "del cache")
-			return tmp.InsetValueSql()
 		}
 	}
 
@@ -227,7 +227,6 @@ func (mk Market) InsetValueSql() string {
 	buf.WriteString(strconv.Itoa(mk.Status))
 	buf.WriteString(",")
 
-	fmt.Println(mk.Id, " is live :", BoolToStr(mk.IsLive))
 	buf.WriteString(BoolToStr(mk.IsLive))
 	buf.WriteString(",")
 
