@@ -4,6 +4,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"regexp"
 	"time"
+	"fmt"
 )
 
 type fileRef struct {
@@ -39,9 +40,11 @@ func StartListener() {
 func ReadListener(event fsnotify.Event, config *Config) {
 
 	if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
+		fmt.Println(event.Name)
 		if event.Name == "/home/www/matchfull.json" {
 			time.AfterFunc(time.Second*10, func() {
 				ParseMatchSave(event.Name)
+				fmt.Println(event.Name, " save success")
 			})
 		}
 
@@ -58,6 +61,7 @@ func ReadListener(event fsnotify.Event, config *Config) {
 func CallWrite(e fsnotify.Event, f func(file string)) {
 	time.AfterFunc(time.Second*3, func() {
 		f(e.Name)
+		fmt.Println(e.Name, " save success")
 	})
 }
 
