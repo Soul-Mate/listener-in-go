@@ -58,6 +58,52 @@ func StartListener() {
 					})
 				}
 			}
+
+			// market full
+			if file == "/home/www/marketfull.json" {
+				if v, ok := fileSyncMap.Load(file); ok {
+					time.AfterFunc(time.Second*15, func() {
+						fmt.Println("after ParseMarketSave start....")
+						ParseMarketSave(v.(string))
+						fileSyncMap.Delete(v)
+						fmt.Println("after ParseMarketSave done....")
+					})
+				}
+			}
+			// match full
+			if file == "/home/www/matchfull.json" {
+				if v, ok := fileSyncMap.Load(file); ok {
+					time.AfterFunc(time.Second*10, func() {
+						fmt.Println("after ParseMatchSave start....")
+						ParseMatchSave(v.(string))
+						fileSyncMap.Delete(v)
+						fmt.Println("after ParseMatchSave done....")
+					})
+				}
+			}
+			// league full
+			if file == "/home/www/leaguesfull.json" {
+				if v, ok := fileSyncMap.Load(file); ok {
+					time.AfterFunc(time.Second*5, func() {
+						fmt.Println("after ParseLeagueSave start....")
+						ParseLeagueSave(v.(string))
+						fileSyncMap.Delete(v)
+						fmt.Println("after ParseLeagueSave done....")
+					})
+				}
+			}
+
+			// league
+			if file == "/home/www/league.json" {
+				if v, ok := fileSyncMap.Load(file); ok {
+					time.AfterFunc(time.Second*5, func() {
+						fmt.Println("after ParseLeagueSave start....")
+						ParseLeagueSave(v.(string))
+						fileSyncMap.Delete(v)
+						fmt.Println("after ParseLeagueSave done....")
+					})
+				}
+			}
 		}
 	}()
 
