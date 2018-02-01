@@ -31,14 +31,14 @@ type Odds struct {
 }
 
 type Market struct {
-	Id        int    `json:"Id"`
-	Name      string `json:"Name"`
-	MatchId   int    `json:"MatchId"`
-	Suspended bool   `json:"Suspended"`
-	Status    int    `json:"Status"`
-	IsLive    bool   `json:"IsLive"`
-	Visible   bool   `json:"Visible"`
-	Odds      []Odds `json:"Odds"`
+	Id        int         `json:"Id"`
+	Name      string      `json:"Name"`
+	MatchId   interface{} `json:"MatchId"`
+	Suspended bool        `json:"Suspended"`
+	Status    int         `json:"Status"`
+	IsLive    bool        `json:"IsLive"`
+	Visible   bool        `json:"Visible"`
+	Odds      []Odds      `json:"Odds"`
 }
 
 func ParseMarketFile(file string) ([]Market, error) {
@@ -123,7 +123,7 @@ func saveMarketSql(mks *[]Market) string {
 	buf.WriteString(")VALUES")
 
 	for _, mk := range *mks {
-		valuesBuf.WriteString(mk.InsetValueSql())
+		valuesBuf.WriteString(mk.InsertSql())
 	}
 	// 没有value 插入
 	values := valuesBuf.String()
@@ -150,6 +150,7 @@ func (mk Market) Set() error {
 			return err
 		}
 		client := GetRedisConnect()
+
 		// cache to redis
 		_, err = client.Set(strconv.Itoa(mk.Id), bs, 0).Result()
 		if err != nil {
@@ -190,27 +191,8 @@ func (mk Market) Del() error {
 }
 
 // 生成market插入格式的sql
-func (mk Market) InsetValueSql() string {
-	// is live & match not end
-	if mk.IsLive && mk.Status != 3 {
-		fmt.Println(mk.Id, " cache")
-		// 写入缓存
-		mk.Set()
-		return ""
-	}
-
-	// is live & match end
-	if mk.IsLive && mk.Status == 3 {
-		if tmp,ok := mk.Get(); ok {
-			tmp := *tmp.(*Market)
-			mk = tmp
-			fmt.Println(mk)
-			tmp.Del()
-		}
-	}
-
+func (mk Market) insertSql() string  {
 	var buf bytes.Buffer
-
 	buf.WriteString("(")
 	buf.WriteString(strconv.Itoa(mk.Id))
 	buf.WriteString(",")
@@ -218,7 +200,7 @@ func (mk Market) InsetValueSql() string {
 	buf.WriteString(strconv.Quote(mk.Name))
 	buf.WriteString(",")
 
-	buf.WriteString(strconv.Itoa(mk.MatchId))
+	buf.WriteString(InterfaceToStr(mk.MatchId))
 	buf.WriteString(",")
 
 	buf.WriteString(BoolToStr(mk.Suspended))
@@ -238,6 +220,33 @@ func (mk Market) InsetValueSql() string {
 	buf.WriteString(")")
 	buf.WriteString(",")
 	return buf.String()
+}
+
+func (mk Market) InsertSql() string {
+	// is live & match not end
+	if mk.IsLive && mk.Status != 3 {
+		// 不存在缓存中
+		if _, ok := mk.Get(); !ok {
+			// 第一次写入缓存
+			fmt.Println(mk.Id, " first set cache")
+			mk.Set()
+			// 同时返回sql语句
+			return mk.insertSql()
+		} else {
+			fmt.Println(mk.Id, "set cache")
+			mk.Set()
+			return ""
+		}
+	}
+
+	// is live & match end
+	if mk.IsLive && mk.Status == 3 {
+		fmt.Println(mk.Id, "delete cache")
+		// 删除缓存
+		mk.Del()
+	}
+
+	return mk.insertSql()
 }
 
 // 序列化odds
