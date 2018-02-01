@@ -5,14 +5,12 @@ import (
 	"regexp"
 	"time"
 	"fmt"
+	"sync"
 )
 
-type fileRef struct {
-	ref  int
-	file string
-}
+var fileNameChan = make(chan string, 10)
 
-var fileRefMap = make(map[string]*fileRef)
+var fileSyncMap = sync.Map{}
 
 func StartListener() {
 	config := GetConfig()
@@ -25,63 +23,56 @@ func StartListener() {
 		for {
 			select {
 			case event := <-watcher.Events:
-				ReadListener(event, config)
+				ReadListener(event)
 			case err := <-watcher.Errors:
 				Check(err)
 			}
 		}
 	}()
-
 	err = watcher.Add(config.Listener.RootPath)
 	Check(err)
+
+	defer close(fileNameChan)
+
+	go func() {
+		for file := range fileNameChan {
+			// match
+			if matched, err := regexp.MatchString(`match[0-9]+\.json$`, file); matched && err == nil {
+				if v, ok := fileSyncMap.Load(file); ok {
+					time.AfterFunc(time.Second*2, func() {
+						fmt.Println("after parseMartchSave start....")
+						ParseMatchSave(v.(string))
+						fileSyncMap.Delete(v)
+						fmt.Println("after parseMartchSave done....")
+					})
+				}
+			}
+			// market
+			if matched, err := regexp.MatchString(`market[0-9]+\.json$`, file); matched && err == nil {
+				if v, ok := fileSyncMap.Load(file); ok {
+					time.AfterFunc(time.Second*2, func() {
+						fmt.Println("after ParseMarketSave start....")
+						ParseMarketSave(v.(string))
+						fileSyncMap.Delete(v)
+						fmt.Println("after ParseMarketSave done....")
+					})
+				}
+			}
+		}
+	}()
+
 	<-done
 }
 
-func ReadListener(event fsnotify.Event, config *Config) {
+func ReadListener(event fsnotify.Event) {
 
 	if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
-		fmt.Println(event.Name)
-		if event.Name == "/home/www/matchfull.json" {
-			time.AfterFunc(time.Second*10, func() {
-				ParseMatchSave(event.Name)
-				fmt.Println(event.Name, " save success")
-			})
-		}
-
-		if matched, err := regexp.MatchString(`match[0-9]+\.json$`, event.Name); matched && err == nil {
-			CallWrite(event, ParseMatchSave)
-		}
-
-		if matched, err := regexp.MatchString(`market[0-9]+\.json`, event.Name); matched && err == nil {
-			CallWrite(event, ParseMarketSave)
+		if _, ok := fileSyncMap.Load(event.Name); !ok {
+			fmt.Println("map nount found: ", event.Name)
+			fileSyncMap.Store(event.Name, event.Name)
+			fileNameChan <- event.Name
+		} else {
+			fmt.Println("map find: ", event.Name)
 		}
 	}
-}
-
-func CallWrite(e fsnotify.Event, f func(file string)) {
-	time.AfterFunc(time.Second*3, func() {
-		f(e.Name)
-		fmt.Println(e.Name, " save success")
-	})
-}
-
-func (fr *fileRef) AddFileRefValue() {
-	fr.ref++
-}
-
-func GetFileRefMap(file string) (*fileRef) {
-	if elem, ok := fileRefMap[file]; ok {
-		return elem
-	}
-	return nil
-}
-
-func SetFileRefMap(file string) {
-	fileRefMap[file] = new(fileRef)
-	fileRefMap[file].file = file
-	fileRefMap[file].ref = 1
-}
-
-func DelFileRefMap(file string) {
-	delete(fileRefMap, file)
 }
